@@ -73,7 +73,6 @@
 				<entry key="LDBA" value-ref="ldbaDataSource" />
 			</map>
 		</property>
-		<property name="lenientFallback" value="false"></property>
 		<property name="defaultTargetDataSource" ref="driverManagerDataSource"/>		
 	</bean>
 

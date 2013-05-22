@@ -224,6 +224,11 @@ public class QueryFrame extends JFrame {
 		// immediate feedback that their query was accepted.
 		msgLabel.setText("Contacting database...");
 		Enumeration<String> selectedElements = RadioButtonUtils.getSelectedElements(radioButtonGroup);
+		if (!selectedElements.hasMoreElements()) {
+			msgLabel.setText(StringUtils.EMPTY);
+			messageArea.setText("Please select a valid layer");
+			return ;
+		}
 		String nextElement = selectedElements.nextElement();
 		Area selectedLayer = Area.valueOf(nextElement);
 		LayerContextHolder.setAreaType(selectedLayer);
@@ -253,7 +258,7 @@ public class QueryFrame extends JFrame {
 					// JOptionPane.showMessageDialog(QueryFrame.this, new
 					// String[] { // Display a 2-line message
 					// ex.getClass().getName() + ": ", ex.getMessage() });
-					ex.printStackTrace();
+					// ex.printStackTrace();
 				}
 				glasspane.stop();
 				glasspane.setVisible(false);

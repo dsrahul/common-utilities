@@ -18,7 +18,9 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.stereotype.Component;
 
+import com.sample.examples.db2.common.Area;
 import com.sample.examples.db2.common.AreaRoutingDataSource;
+import com.sample.examples.db2.common.LayerContextHolder;
 
 /**
  * This class encapsulates a JDBC database connection and, given a SQL query
@@ -53,7 +55,9 @@ public class ResultSetTableModelFactory {
 	protected void init() {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 		routingTemplate = new JdbcTemplate(areaRoutingDataSource);
+
 		jdbcTemplate.setExceptionTranslator(customFormErrorTranslator);
+		routingTemplate.setExceptionTranslator(customFormErrorTranslator);
 	}
 
 	public ResultSetTableModelFactory() {
@@ -67,14 +71,7 @@ public class ResultSetTableModelFactory {
 	 * @throws SQLException 
 	 **/
 	public ResultSetTableModel getResultSetTableModel(String query) throws SQLException {
-		/*try {
-			return new ResultSetTableModel(sqlServices.executeQuery(query));
-		}
-		catch (DB2AccessApplicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/		
-		if (StringUtils.contains(StringUtils.upperCase(query), "LDBA") && !StringUtils.contains(StringUtils.upperCase(query), "WITH UR")
+		if ((StringUtils.contains(StringUtils.upperCase(query), "LDBA") || LayerContextHolder.getAreaType() == Area.LDBA)&& !StringUtils.contains(StringUtils.upperCase(query), "WITH UR")
 				&& !StringUtils.contains(StringUtils.upperCase(query), "WITH HIRR")) {
 			throw new IllegalStateException("Please use select query with uncommitted reads."); 
 		} else if (jdbcTemplate != null) {
