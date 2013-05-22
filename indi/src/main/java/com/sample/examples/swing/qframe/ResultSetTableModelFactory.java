@@ -8,13 +8,17 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbcp.BasicDataSourceFactory;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.stereotype.Component;
+
+import com.sample.examples.db2.common.AreaRoutingDataSource;
 
 /**
  * This class encapsulates a JDBC database connection and, given a SQL query
@@ -26,10 +30,13 @@ public class ResultSetTableModelFactory {
 
 	@Autowired
 	private @Qualifier("dataSource") BasicDataSource dataSource;
+	@Autowired
+	private @Qualifier("areaRoutingDataSource") AreaRoutingDataSource areaRoutingDataSource;
 	@Autowired(required=true)
 	private SQLExceptionTranslator customFormErrorTranslator;
-	
+
 	private JdbcTemplate jdbcTemplate = null;
+	private JdbcTemplate routingTemplate = null;
 	/** The constructor method uses the arguments to create db Connection 
 	 * @throws Exception */
 	public ResultSetTableModelFactory(String driverClassName, String dbname, String username, String password) throws Exception {
@@ -45,6 +52,7 @@ public class ResultSetTableModelFactory {
 	@PostConstruct
 	protected void init() {
 		jdbcTemplate = new JdbcTemplate(dataSource);
+		routingTemplate = new JdbcTemplate(areaRoutingDataSource);
 		jdbcTemplate.setExceptionTranslator(customFormErrorTranslator);
 	}
 
@@ -70,7 +78,8 @@ public class ResultSetTableModelFactory {
 				&& !StringUtils.contains(StringUtils.upperCase(query), "WITH HIRR")) {
 			throw new IllegalStateException("Please use select query with uncommitted reads."); 
 		} else if (jdbcTemplate != null) {
-			return new ResultSetTableModel(jdbcTemplate.queryForRowSet(query));
+			return new ResultSetTableModel(routingTemplate.queryForRowSet(query));
+			// return new ResultSetTableModel(jdbcTemplate.queryForRowSet(query));
 		} else {
 			throw new IllegalStateException("Connection already closed.");
 		}
@@ -81,6 +90,6 @@ public class ResultSetTableModelFactory {
 		dataSource.setPassword(aPWD);
 		DataSourceUtils.doReleaseConnection(DataSourceUtils.doGetConnection(dataSource), dataSource);
 		init();
-		
+		areaRoutingDataSource.setCredentials(new UsernamePasswordCredentials(anUID, aPWD));
 	}
 }

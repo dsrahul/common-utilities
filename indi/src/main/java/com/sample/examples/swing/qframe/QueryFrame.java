@@ -7,17 +7,24 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Enumeration;
+import java.util.Vector;
 
 import javax.annotation.PostConstruct;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,12 +32,15 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
@@ -42,12 +52,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.sample.examples.db2.common.Area;
+import com.sample.examples.db2.common.LayerContextHolder;
 import com.sample.examples.swing.qframe.glasspane.InfiniteProgressPanel;
 
 /**
- * This class creates a Swing GUI that allows the user to enter a SQL query. It
- * then obtains a ResultSetTableModel for the query and uses it to display the
- * results of the query in a scrolling JTable component.
+ * This class creates a Swing GUI that allows the user to enter a SQL query. It then obtains a ResultSetTableModel for the query and uses it to display the results of the query in a scrolling JTable component.
  **/
 @Component
 public class QueryFrame extends JFrame {
@@ -66,6 +76,7 @@ public class QueryFrame extends JFrame {
 	private SecurePrompt securePrompt;
 	final InfiniteProgressPanel glasspane = new InfiniteProgressPanel("Please wait....");
 	private AbstractDocument doc;
+	private static final String sliceOptions[] = { "UNIT", "SYST", "ACPT", "EDUC", "LIVE" };
 	private static boolean INITFEEL = false;;
 	// Specify the look and feel to use by defining the LOOKANDFEEL constant
 	// Valid values are: null (use the default), "Metal", "System", "Motif",
@@ -75,6 +86,7 @@ public class QueryFrame extends JFrame {
 	// Specify the theme to use by defining the THEME constant
 	// Valid values are: "DefaultMetal", "Ocean", and "Test"
 	final static String THEME = "Ocean";
+	private Container radioButtonGroup;
 
 	public QueryFrame() {
 		super();
@@ -87,6 +99,7 @@ public class QueryFrame extends JFrame {
 		this.setTitle("QueryFrame"); // Set window title
 		// Arrange to quit the program when the user closes the window
 		addWindowListener(new WindowAdapter() {
+
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
 			}
@@ -101,19 +114,22 @@ public class QueryFrame extends JFrame {
 
 		// textArea.setFont(new Font("Serif", Font.ITALIC, 16));
 		/*
-		 * queryTextArea = new JTextArea(15, 100);
-		 * queryTextArea.setLineWrap(true);
-		 * queryTextArea.setWrapStyleWord(true); JScrollPane areaScrollPane =
-		 * new JScrollPane(queryTextArea);
+		 * queryTextArea = new JTextArea(15, 100); queryTextArea.setLineWrap(true); queryTextArea.setWrapStyleWord(true); JScrollPane areaScrollPane = new JScrollPane(queryTextArea);
 		 */
 		queryTextPane = new JTextPane();
 		queryTextPane.setCaretPosition(0);
 		queryTextPane.setMargin(new Insets(5, 5, 5, 5));
 		StyledDocument styledDoc = queryTextPane.getStyledDocument();
 		queryTextPane.addKeyListener(new KeyListener() {
+
 			private String prev;
-			public void keyTyped(KeyEvent e) {}
-			public void keyReleased(KeyEvent e) {}
+
+			public void keyTyped(KeyEvent e) {
+			}
+
+			public void keyReleased(KeyEvent e) {
+			}
+
 			public void keyPressed(KeyEvent e) {
 				String keyedText = String.valueOf(e.getKeyChar());
 				if (StringUtils.equals(keyedText, "-") && StringUtils.equals(prev, keyedText)) {
@@ -124,18 +140,18 @@ public class QueryFrame extends JFrame {
 		});
 		queryTextPane.setEditorKit(new StyledEditorKit());
 		queryTextPane.setFont(new Font("COURIER NEW", Font.PLAIN, 12));
-		
-	    JMenu fontMenu = new JMenu("Font Size");
-	    for (int i = 48; i >= 8; i -= 10) {
-	      JMenuItem menuItem = new JMenuItem("" + i);
-	      // add an action
-	      menuItem.addActionListener(new StyledEditorKit.FontSizeAction("myaction-" + i, i));
-	      fontMenu.add(menuItem);
-	    }
-	    JMenuBar menuBar = new JMenuBar();
-	    menuBar.add(fontMenu);
-	    setJMenuBar(menuBar);
-		
+
+		JMenu fontMenu = new JMenu("Font Size");
+		for (int i = 48; i >= 8; i -= 10) {
+			JMenuItem menuItem = new JMenuItem("" + i);
+			// add an action
+			menuItem.addActionListener(new StyledEditorKit.FontSizeAction("myaction-" + i, i));
+			fontMenu.add(menuItem);
+		}
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(fontMenu);
+		setJMenuBar(menuBar);
+
 		JScrollPane areaScrollPane = new JScrollPane(queryTextPane);
 		areaScrollPane.setPreferredSize(new Dimension(800, 275));
 		areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -155,6 +171,8 @@ public class QueryFrame extends JFrame {
 			}
 		});
 		topPanel.add(queryButton);
+		radioButtonGroup = RadioButtonUtils.createRadioButtonGrouping(Area.enumNameToStringArray(), "LAYER");
+		topPanel.add(radioButtonGroup);
 
 		JScrollPane tableScrollPane = new JScrollPane(queryResulttable);
 		tableScrollPane.setPreferredSize(new Dimension(MAX_AVAILABLE_WIDTH, 450));
@@ -175,9 +193,7 @@ public class QueryFrame extends JFrame {
 		messageArea.setWrapStyleWord(true);
 		messageArea.setLineWrap(true);
 		messageArea.setEditable(false);
-		JScrollPane messageScrollPane = new JScrollPane(messageArea, 
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JScrollPane messageScrollPane = new JScrollPane(messageArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		messageScrollPane.setPreferredSize(new Dimension(MAX_AVAILABLE_WIDTH, 120));
 		JPanel messagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		messagePanel.add(messageScrollPane);
@@ -192,8 +208,7 @@ public class QueryFrame extends JFrame {
 	}
 
 	/**
-	 * This constructor method creates a simple GUI and hooks up an event
-	 * listener that updates the table when the user enters a new query.
+	 * This constructor method creates a simple GUI and hooks up an event listener that updates the table when the user enters a new query.
 	 **/
 	public QueryFrame(ResultSetTableModelFactory f) {
 		// Remember the factory object that was passed to us
@@ -202,15 +217,16 @@ public class QueryFrame extends JFrame {
 	}
 
 	/**
-	 * This method uses the supplied SQL query string, and the
-	 * ResultSetTableModelFactory object to create a TableModel that holds the
-	 * results of the database query. It passes that TableModel to the JTable
-	 * component for display.
+	 * This method uses the supplied SQL query string, and the ResultSetTableModelFactory object to create a TableModel that holds the results of the database query. It passes that TableModel to the JTable component for display.
 	 **/
 	public void displayQueryResults(final String q) {
 		// It may take a while to get the results, so give the user some
 		// immediate feedback that their query was accepted.
 		msgLabel.setText("Contacting database...");
+		Enumeration<String> selectedElements = RadioButtonUtils.getSelectedElements(radioButtonGroup);
+		String nextElement = selectedElements.nextElement();
+		Area selectedLayer = Area.valueOf(nextElement);
+		LayerContextHolder.setAreaType(selectedLayer);
 		queryResulttable.setModel(ResultSetTableModel.EMPTY_MODEL);
 		// In order to allow the feedback message to be displayed, we don't
 		// run the query directly, but instead place it on the event queue
@@ -219,29 +235,25 @@ public class QueryFrame extends JFrame {
 
 			public void run() {
 				try {
-					ResultSetTableModel resultSetTableModel = factory
-							.getResultSetTableModel(q);
+					ResultSetTableModel resultSetTableModel = factory.getResultSetTableModel(q);
 					// This is the crux of it all. Use the factory object
 					// to obtain a TableModel object for the query results
 					// and display that model in the JTable component.
 					queryResulttable.setModel(resultSetTableModel);
 					// We're done, so clear the feedback message
 					msgLabel.setText(StringUtils.EMPTY);
-					messageArea.setText(" No of rows fetched :[ "
-							+ resultSetTableModel.getRowCount()
-							+ " ]".concat("\n").concat(
-									resultSetTableModel.getConnectionDetails()));
-				} catch (Exception ex) {
+					messageArea.setText(" No of rows fetched :[ " + resultSetTableModel.getRowCount() + " ]".concat("\n").concat(resultSetTableModel.getConnectionDetails()));
+				}
+				catch (Exception ex) {
 					// If something goes wrong, clear the message line
 					queryResulttable.setModel(ResultSetTableModel.EMPTY_MODEL);
 					msgLabel.setText(StringUtils.EMPTY);
-					messageArea.setText(ex.getClass().getName() + ": "
-							+ ex.getMessage());
+					messageArea.setText(ex.getClass().getName() + ": " + ex.getMessage());
 					// Then display the error in a dialog box
 					// JOptionPane.showMessageDialog(QueryFrame.this, new
 					// String[] { // Display a 2-line message
 					// ex.getClass().getName() + ": ", ex.getMessage() });
-					// ex.printStackTrace();
+					ex.printStackTrace();
 				}
 				glasspane.stop();
 				glasspane.setVisible(false);
@@ -252,9 +264,10 @@ public class QueryFrame extends JFrame {
 	}
 
 	private static void initLookAndFeel() {
-		
-		if (!INITFEEL) return;
-		
+
+		if (!INITFEEL)
+			return;
+
 		String lookAndFeel = null;
 
 		if (LOOKANDFEEL != null) {
@@ -279,9 +292,7 @@ public class QueryFrame extends JFrame {
 			}
 
 			else {
-				System.err
-						.println("Unexpected value of LOOKANDFEEL specified: "
-								+ LOOKANDFEEL);
+				System.err.println("Unexpected value of LOOKANDFEEL specified: " + LOOKANDFEEL);
 				lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
 			}
 
@@ -293,11 +304,10 @@ public class QueryFrame extends JFrame {
 
 				if (LOOKANDFEEL.equals("Metal")) {
 					if (THEME.equals("DefaultMetal"))
-						MetalLookAndFeel
-								.setCurrentTheme(new DefaultMetalTheme());
+						MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
 					else if (THEME.equals("Ocean"))
 						MetalLookAndFeel.setCurrentTheme(new OceanTheme());
-					
+
 
 					UIManager.setLookAndFeel(new MetalLookAndFeel());
 				}
@@ -305,23 +315,18 @@ public class QueryFrame extends JFrame {
 			}
 
 			catch (ClassNotFoundException e) {
-				System.err
-						.println("Couldn't find class for specified look and feel:"
-								+ lookAndFeel);
-				System.err
-						.println("Did you include the L&F library in the class path?");
+				System.err.println("Couldn't find class for specified look and feel:" + lookAndFeel);
+				System.err.println("Did you include the L&F library in the class path?");
 				System.err.println("Using the default look and feel.");
 			}
 
 			catch (UnsupportedLookAndFeelException e) {
-				System.err.println("Can't use the specified look and feel ("
-						+ lookAndFeel + ") on this platform.");
+				System.err.println("Can't use the specified look and feel (" + lookAndFeel + ") on this platform.");
 				System.err.println("Using the default look and feel.");
 			}
 
 			catch (Exception e) {
-				System.err.println("Couldn't get specified look and feel ("
-						+ lookAndFeel + "), for some reason.");
+				System.err.println("Couldn't get specified look and feel (" + lookAndFeel + "), for some reason.");
 				System.err.println("Using the default look and feel.");
 				e.printStackTrace();
 			}
@@ -329,9 +334,7 @@ public class QueryFrame extends JFrame {
 	}
 
 	/**
-	 * This simple main method tests the class. It expects four command-line
-	 * arguments: the driver classname, the database URL, the username, and the
-	 * password
+	 * This simple main method tests the class. It expects four command-line arguments: the driver classname, the database URL, the username, and the password
 	 **/
 	public static void main(String args[]) throws Exception {
 		// Set the look and feel.
@@ -341,10 +344,7 @@ public class QueryFrame extends JFrame {
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		// Create the factory object that holds the database connection using
 		// the data specified on the command line
-		ResultSetTableModelFactory factory = new ResultSetTableModelFactory(
-				"com.ibm.db2.jcc.DB2Driver",
-				"jdbc:db2://lmc1dbt.mc1.johnlewis.co.uk:11200/LMC1DBT",
-				"TPU005", "Zenpa678");
+		ResultSetTableModelFactory factory = new ResultSetTableModelFactory("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://lmc1dbt.mc1.johnlewis.co.uk:11200/LMC1DBT", "TPU005", "Zenpa678");
 		// Create a QueryFrame component that uses the factory object.
 		QueryFrame queryFrame = new QueryFrame(factory);
 
@@ -352,5 +352,77 @@ public class QueryFrame extends JFrame {
 		queryFrame.pack();
 		queryFrame.setVisible(true);
 	}
-	
+
+
+}
+
+class RadioButtonUtils {
+
+	private RadioButtonUtils() {
+		// private constructor so you can't create instances
+	}
+
+	public static Enumeration<String> getSelectedElements(Container container) {
+		Vector<String> selections = new Vector<String>();
+		java.awt.Component[] components = container.getComponents();
+		for (int i = 0, n = components.length; i < n; i++) {
+			if (components[i] instanceof AbstractButton) {
+				AbstractButton button = (AbstractButton) components[i];
+				if (button.isSelected()) {
+					selections.addElement(button.getText());
+				}
+			}
+		}
+		return selections.elements();
+	}
+
+	public static Container createRadioButtonGrouping(String elements[]) {
+		return createRadioButtonGrouping(elements, null, null, null, null);
+	}
+
+	public static Container createRadioButtonGrouping(String elements[], String title) {
+		return createRadioButtonGrouping(elements, title, null, null, null);
+	}
+
+	public static Container createRadioButtonGrouping(String elements[], String title, ItemListener itemListener) {
+		return createRadioButtonGrouping(elements, title, null, itemListener, null);
+	}
+
+	public static Container createRadioButtonGrouping(String elements[], String title, ActionListener actionListener) {
+		return createRadioButtonGrouping(elements, title, actionListener, null, null);
+	}
+
+	public static Container createRadioButtonGrouping(String elements[], String title, ActionListener actionListener, ItemListener itemListener) {
+		return createRadioButtonGrouping(elements, title, actionListener, itemListener, null);
+	}
+
+	public static Container createRadioButtonGrouping(String elements[], String title, ActionListener actionListener, ItemListener itemListener, ChangeListener changeListener) {
+		JPanel panel = new JPanel(new GridLayout(0, 1));
+		// If title set, create titled border
+		if (title != null) {
+			Border border = BorderFactory.createTitledBorder(title);
+			panel.setBorder(border);
+		}
+		// Create group
+		ButtonGroup group = new ButtonGroup();
+		JRadioButton aRadioButton;
+		// For each String passed in:
+		// Create button, add to panel, and add to group
+		for (int i = 0, n = elements.length; i < n; i++) {
+			aRadioButton = new JRadioButton(elements[i]);
+			panel.add(aRadioButton);
+			group.add(aRadioButton);
+			if (actionListener != null) {
+				aRadioButton.addActionListener(actionListener);
+			}
+			if (itemListener != null) {
+				aRadioButton.addItemListener(itemListener);
+			}
+			if (changeListener != null) {
+				aRadioButton.addChangeListener(changeListener);
+			}
+		}
+		return panel;
+	}
+
 }

@@ -1,0 +1,80 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+           http://www.springframework.org/schema/util 
+           http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+
+	<bean id="driverManagerDataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassName}">
+		</property>
+		<property name="url" value="${jdbc.url}"></property>
+	</bean>
+
+	<bean id="parentDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+	</bean>
+	
+	<bean id="tcdsDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=TCDS;"></property>
+	</bean>
+	
+	<bean id="scdsDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=SCDS;"></property>
+	</bean>
+	
+	<bean id="ecdsDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=ECDS;"></property>
+	</bean>
+	
+	<bean id="tdtkDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=TDTK;"></property>
+	</bean>
+	
+	<bean id="sdtkDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=SDTK;"></property>
+	</bean>
+	
+	<bean id="tssmDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=TSSM;"></property>
+	</bean>
+	
+	<bean id="sssmDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=SSSM;"></property>
+	</bean>
+	
+	<bean id="adbaDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url}:currentSchema=ADBA;"></property>
+	</bean>
+	
+	<bean id="ldbaDataSource" autowire-candidate="default" parent="driverManagerDataSource">
+		<property name="url" value="${jdbc.url.live}:currentSchema=LDBA;"></property>
+	</bean>
+
+	<bean id="areaRoutingDataSource" class="com.sample.examples.db2.common.AreaRoutingDataSource">
+		<property name="targetDataSources">
+			<map key-type="com.sample.examples.db2.common.Area">
+				<entry key="TPU005" value-ref="driverManagerDataSource" />
+				<entry key="TCDS" value-ref="tcdsDataSource" />
+				<entry key="SCDS" value-ref="scdsDataSource" />
+				<entry key="ECDS" value-ref="ecdsDataSource" />
+				<entry key="TDTK" value-ref="tdtkDataSource" />
+				<entry key="SDTK" value-ref="sdtkDataSource" />
+				<entry key="TSSM" value-ref="tssmDataSource" />
+				<entry key="SSSM" value-ref="sssmDataSource" />
+				<entry key="ADBA" value-ref="adbaDataSource" />
+				<entry key="LDBA" value-ref="ldbaDataSource" />
+			</map>
+		</property>
+		<property name="lenientFallback" value="false"></property>
+		<property name="defaultTargetDataSource" ref="driverManagerDataSource"/>		
+	</bean>
+
+</beans>
