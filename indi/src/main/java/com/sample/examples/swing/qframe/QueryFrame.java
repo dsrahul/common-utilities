@@ -75,8 +75,6 @@ public class QueryFrame extends JFrame {
 	@Autowired
 	private SecurePrompt securePrompt;
 	final InfiniteProgressPanel glasspane = new InfiniteProgressPanel("Please wait....");
-	private AbstractDocument doc;
-	private static final String sliceOptions[] = { "UNIT", "SYST", "ACPT", "EDUC", "LIVE" };
 	private static boolean INITFEEL = false;;
 	// Specify the look and feel to use by defining the LOOKANDFEEL constant
 	// Valid values are: null (use the default), "Metal", "System", "Motif",
@@ -119,7 +117,6 @@ public class QueryFrame extends JFrame {
 		queryTextPane = new JTextPane();
 		queryTextPane.setCaretPosition(0);
 		queryTextPane.setMargin(new Insets(5, 5, 5, 5));
-		StyledDocument styledDoc = queryTextPane.getStyledDocument();
 		queryTextPane.addKeyListener(new KeyListener() {
 
 			private String prev;
