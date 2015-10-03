@@ -74,7 +74,7 @@ public class FWFrame extends JFrame {
 
 	@Autowired
 	@Qualifier("fwTable")
-	private JTable table;
+	private JTable table = new JTable();
 	private JLabel msgline;
 	private JTextArea messageArea;
 	private JTextField profitabilityTextField;
@@ -226,7 +226,9 @@ public class FWFrame extends JFrame {
 
 	public void displayQueryResults() {
 		String commaSeperatedPostcodesText = this.commaSeperatedPostcodes.getText();
-		Date suppliedDate = ((GregorianCalendar) this.createJDatePicker.getModel().getValue()).getTime();
+		//Date suppliedDate = ((GregorianCalendar) this.createJDatePicker.getModel().getValue()).getTime();
+		Date suppliedDate = (Date) (this.createJDatePicker.getModel().getValue());
+		
 		/*JJSDate startDate = null;
 		if (suppliedDate != null) {
 			startDate = JJSDateAndTimeUtil.createJJSDateFromJavaUtilDate(suppliedDate);

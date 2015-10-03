@@ -38,7 +38,7 @@ import fw.org.company.form.FWFrame;
 @Component("tablefactory")
 public class FWResponseTableModelFactory {
 
-	private String XML = "<DocFWImport><Header CompanyName=\"jl\" LoginName=\"fw-admin\" Password=\"cs\"/><Request><DocMasterBOL><DocBOL AdviseType=\"0\" ApplyFWOnly=\"true\" BOLNumber=\"30300092\" \t\tStartDate=\"<DATE>T00:00:01\" EndDate=\"<DATE>T23:59:59\" \t\tMaxSlots=\"500\" MessagePurpose=\"1002\" ProcessCode=\"30\" ScheduleKey=\"Planning\"><UDF DeliveryRatio=\"1\" Profit=\"2500\"/><DeliveryLocation GeocodingPolicy=\"2\" Zip=\"$$$$\" LocationType=\"CUSTOMER\" Territory=\"*\"/><BOLLine ItemQty=\"1\"><UDF Measure1=\"$MES1$\" Measure2=\"$MES2$\" Measure3=\"$MES3$\" ProductKey=\"72190/1\" Requirements=\"$REQ$\"/></BOLLine></DocBOL></DocMasterBOL></Request></DocFWImport>";
+	private String XML = "<DocFWImport><Header CompanyName=\"jl\" LoginName=\"fw-admin\" Password=\"cs\"/><Request><DocMasterBOL><DocBOL AdviseType=\"0\" ApplyFWOnly=\"true\" BOLNumber=\"30300092\" \t\tStartDate=\"<DATE>T00:00:01\" EndDate=\"<DATE>T23:59:59\" \t\tMaxSlots=\"500\" MessagePurpose=\"1002\" ProcessCode=\"30\" ScheduleKey=\"Planning\"><UDF DeliveryRatio=\"1\" Profit=\"2500\"/><DeliveryLocation GeocodingPolicy=\"2\" Zip=\"$$$$\" Country=\"UK\" LocationType=\"CUSTOMER\" Territory=\"*\"/><BOLLine ItemQty=\"1\"><UDF Measure1=\"$MES1$\" Measure2=\"$MES2$\" Measure3=\"$MES3$\" ProductKey=\"72190/1\" Requirements=\"$REQ$\"/></BOLLine></DocBOL></DocMasterBOL></Request></DocFWImport>";
 	private WebServiceTemplate adviseCallWebServiceTemplate;
 	private static final String XPATH_DEL_WINDOW = "//STADMessage/Request/DocBOL/DeliveryWindow";
 	private static final String FW_URI = "http://jlp-fleetwise-ba/STAD/Listener/DocBOLAdviceConfirmListener.asp";
