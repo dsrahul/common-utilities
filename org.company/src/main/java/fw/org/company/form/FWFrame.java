@@ -12,6 +12,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -28,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -40,19 +43,17 @@ import javax.swing.KeyStroke;
 import javax.swing.table.TableModel;
 import javax.swing.text.MaskFormatter;
 
-import net.sourceforge.jdatepicker.JDateComponentFactory;
-import net.sourceforge.jdatepicker.JDatePicker;
-
 import org.apache.commons.collections.SetUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import com.johnlewis.jjs.jjs2core.common.util.JJSDateAndTimeUtil;
-import com.johnlewis.jjs.jjs2core.common.vo.dateandtime.JJSDate;
 
 import fw.org.company.component.InfiniteProgressPanel;
 import fw.org.company.model.FWResponseTableModel;
@@ -82,7 +83,7 @@ public class FWFrame extends JFrame {
 	private JTextField measure3TextField = new JTextField();
 
 	final InfiniteProgressPanel glasspane = new InfiniteProgressPanel("Please wait....");
-	private JDatePicker createJDatePicker;
+	private JDatePickerImpl createJDatePicker;
 	private ActionListener queryFWActionListener = new ActionListener() {
 
 		public void actionPerformed(ActionEvent e) {
@@ -112,7 +113,15 @@ public class FWFrame extends JFrame {
 		this.commaSeperatedPostcodes.setMaximumSize(new Dimension(600, 25));
 		this.commaSeperatedPostcodes.setPreferredSize(new Dimension(600, 25));
 		this.msgline = new JLabel();
-		this.createJDatePicker = JDateComponentFactory.createJDatePicker();
+		
+		UtilDateModel model = new UtilDateModel(DateUtils.addDays(Calendar.getInstance().getTime(), 1));
+		Properties p = new Properties();
+		p.put("text.today", "Today");
+		p.put("text.month", "Month");
+		p.put("text.year", "Year");
+		JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+		createJDatePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
+        
 		((java.awt.Component) this.createJDatePicker).setMaximumSize(new Dimension(125, 30));
 		((java.awt.Component) this.createJDatePicker).setPreferredSize(new Dimension(125, 30));
 
@@ -218,14 +227,14 @@ public class FWFrame extends JFrame {
 	public void displayQueryResults() {
 		String commaSeperatedPostcodesText = this.commaSeperatedPostcodes.getText();
 		Date suppliedDate = ((GregorianCalendar) this.createJDatePicker.getModel().getValue()).getTime();
-		JJSDate startDate = null;
+		/*JJSDate startDate = null;
 		if (suppliedDate != null) {
 			startDate = JJSDateAndTimeUtil.createJJSDateFromJavaUtilDate(suppliedDate);
 		}
 		else {
 			Date currentDate = Calendar.getInstance().getTime();
 			startDate = JJSDateAndTimeUtil.createJJSDateFromJavaUtilDate(currentDate);
-		}
+		}*/
 
 		String selectedItem = (String) this.editableCB.getSelectedItem();
 		String profit = PROFITABILITY_1400.toString();
@@ -264,7 +273,7 @@ public class FWFrame extends JFrame {
 		List<String> asList = Arrays.asList(aOfPostcodes);
 		final Set<String> sOfPostcodes = new HashSet<String>(new ArrayList<String>(asList));
 		final int sizeOfItems = sOfPostcodes.size();
-		final FWQueryDTO queryDTO = new FWQueryDTO(sOfPostcodes, startDate, selectedItem, profitability, measure1, measure2, measure3);
+		final FWQueryDTO queryDTO = new FWQueryDTO(sOfPostcodes, suppliedDate, selectedItem, profitability, measure1, measure2, measure3);
 		Thread thread = new Thread(new Runnable() {
 
 			public void run() {
@@ -332,14 +341,14 @@ public class FWFrame extends JFrame {
 	public class FWQueryDTO {
 
 		private Set<String> sOfpostcodes;
-		private JJSDate startDate;
+		private Date startDate;
 		private String requirement;
 		private BigDecimal profitability;
 		private Integer measure1;
 		private Integer measure2;
 		private Integer measure3;
 
-		public FWQueryDTO(Set<String> aSOfPostcodes, JJSDate aStartDate, String aRequirement, BigDecimal aProfitability, Integer aMeasure1, Integer aMeasure2, Integer aMeasure3) {
+		public FWQueryDTO(Set<String> aSOfPostcodes, Date aStartDate, String aRequirement, BigDecimal aProfitability, Integer aMeasure1, Integer aMeasure2, Integer aMeasure3) {
 			this.sOfpostcodes = aSOfPostcodes;
 			this.startDate = aStartDate;
 			this.requirement = aRequirement;
@@ -361,7 +370,7 @@ public class FWFrame extends JFrame {
 			return this.profitability;
 		}
 
-		public JJSDate getStartDate() {
+		public Date getStartDate() {
 			return this.startDate;
 		}
 
@@ -376,5 +385,26 @@ public class FWFrame extends JFrame {
 		public Integer getMeasure3() {
 			return this.measure3;
 		}
+	}
+	private class DateLabelFormatter extends AbstractFormatter {
+
+	    private String datePattern = "dd.MM.yyyy";
+	    private SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
+
+	    @Override
+	    public Object stringToValue(String text) throws ParseException {
+	        return dateFormatter.parseObject(text);
+	    }
+
+	    @Override
+	    public String valueToString(Object value) throws ParseException {
+	        if (value != null) {
+	            Calendar cal = (Calendar) value;
+	            return dateFormatter.format(cal.getTime());
+	        }
+
+	        return "";
+	    }
+
 	}
 }

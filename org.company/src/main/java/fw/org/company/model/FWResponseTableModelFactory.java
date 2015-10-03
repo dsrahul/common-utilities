@@ -3,7 +3,9 @@ package fw.org.company.model;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +20,7 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.collections.set.ListOrderedSet;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
@@ -29,10 +32,6 @@ import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import com.johnlewis.jjs.jjs2core.common.dto.JJSAbstractDTO;
-import com.johnlewis.jjs.jjs2core.common.util.JJSDateAndTimeUtil;
-import com.johnlewis.jjs.jjs2core.common.vo.dateandtime.JJSDate;
 
 import fw.org.company.form.FWFrame;
 
@@ -71,9 +70,13 @@ public class FWResponseTableModelFactory {
 			int counter = 0;
 			FWAdviseCallResponseDTO adviseCallResponseDTO = null;
 			while (counter < 20) {
-				JJSDate startDate = JJSDateAndTimeUtil.addToDay(fwQueryDTO.getStartDate(), Integer.valueOf(counter));
+				//JJSDate startDate = JJSDateAndTimeUtil.addToDay(fwQueryDTO.getStartDate(), Integer.valueOf(counter));
+				Date startDate = DateUtils.addDays(fwQueryDTO.getStartDate(), Integer.valueOf(counter));
 
-				String replacedPostcode = StringUtils.replace(XML, "<DATE>", startDate.getYear() + "-" + startDate.getMonth() + "-" + startDate.getDay());
+				String replacedPostcode = StringUtils.replace(XML, "<DATE>", 
+						DateUtils.getFragmentInDays(startDate, Calendar.YEAR) + 
+						"-" + DateUtils.getFragmentInDays(startDate, Calendar.MONTH) + 
+						"-" + DateUtils.getFragmentInDays(startDate, Calendar.DATE));
 				replacedPostcode = StringUtils.replace(replacedPostcode, "$$$$", postcode);
 				replacedPostcode = StringUtils.replace(replacedPostcode, "$REQ$", fwQueryDTO.getRequirement());
 				replacedPostcode = StringUtils.replace(replacedPostcode, "$MES1$", fwQueryDTO.getMeasure1().toString());
@@ -210,7 +213,7 @@ public class FWResponseTableModelFactory {
 		return null;
 	}
 
-	class FWAdviseCallResponseDTO extends JJSAbstractDTO {
+	class FWAdviseCallResponseDTO {
 
 		private static final long serialVersionUID = 1L;
 		private int adviseResponseId;
