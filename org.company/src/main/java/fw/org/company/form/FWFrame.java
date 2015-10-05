@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -48,6 +47,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -56,8 +57,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import fw.org.company.component.InfiniteProgressPanel;
+import fw.org.company.component.InputDialog;
 import fw.org.company.model.FWResponseTableModel;
 import fw.org.company.model.FWResponseTableModelFactory;
+import fw.org.company.util.PropertyUtils;
 
 @Component
 public class FWFrame extends JFrame {
@@ -100,7 +103,7 @@ public class FWFrame extends JFrame {
 	}
 
 	@PostConstruct
-	protected void init() {
+	protected void init() {		
 		setTitle("QueryFrame");
 
 		addWindowListener(new WindowAdapter() {
@@ -111,7 +114,8 @@ public class FWFrame extends JFrame {
 		});
 		this.commaSeperatedPostcodes = new JTextField();
 		this.commaSeperatedPostcodes.setMaximumSize(new Dimension(600, 25));
-		this.commaSeperatedPostcodes.setPreferredSize(new Dimension(600, 25));
+		this.commaSeperatedPostcodes.setPreferredSize(new Dimension(600, 25));	
+		
 		this.msgline = new JLabel();
 		
 		UtilDateModel model = new UtilDateModel(DateUtils.addDays(Calendar.getInstance().getTime(), 1));
@@ -126,7 +130,7 @@ public class FWFrame extends JFrame {
 		((java.awt.Component) this.createJDatePicker).setPreferredSize(new Dimension(125, 30));
 
 		Container contentPane = getContentPane();
-		String[] items = { "DEL", "HIT", "INS" };
+		String[] items = PropertyUtils.getPropertyValueAsArray("advisecall.list.requirements");
 		this.editableCB = new JComboBox(items);
 		this.editableCB.setEditable(true);
 		this.editableCB.setMaximumSize(new Dimension(100, 25));
@@ -148,7 +152,7 @@ public class FWFrame extends JFrame {
 			e1.printStackTrace();
 		}
 		this.profitabilityTextField = new JFormattedTextField(maskFormatter);
-		this.profitabilityTextField.setText(PROFITABILITY_1400.toString());
+		this.profitabilityTextField.setText(PropertyUtils.getPropertyByName("advisecall.profitability"));
 		this.profitabilityTextField.setColumns(10);
 		this.profitabilityTextField.setMaximumSize(new Dimension(10, 25));
 		this.profitabilityTextField.setPreferredSize(new Dimension(10, 25));
@@ -212,8 +216,12 @@ public class FWFrame extends JFrame {
 
 		setInformation();
 		setGlassPane(this.glasspane);
-		setVisible(true);
+		setVisible(true);		
+		
+		
+		
 	}
+	
 
 	private void setInformation() {
 		this.msgline.setText("<html>1: Enter comma seperated postcodes in the text box above e.g.  CB61AB, WD245BB <br> 2: Pick or Key in a Requirement and Hit Query </html>");
@@ -389,8 +397,8 @@ public class FWFrame extends JFrame {
 		}
 	}
 	private class DateLabelFormatter extends AbstractFormatter {
-
-	    private String datePattern = "dd.MM.yyyy";
+		private static final long serialVersionUID = 1L;
+		private String datePattern = "dd.MM.yyyy";
 	    private SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
 
 	    @Override
